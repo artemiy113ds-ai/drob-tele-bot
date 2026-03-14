@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MiniShop - Телеграм Магазин</title>
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/static/style.css">
+    
+    <!-- Swiper for Banners -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+    
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <!-- Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div id="app" class="app">
+        <!-- Navigation Bar -->
+        <nav class="navbar">
+            <button class="nav-item" data-nav="shop" onclick="navigateTo('shop')">
+                <span class="icon">🏪</span>
+                <span>Магазин</span>
+            </button>
+            <button class="nav-item" data-nav="profile" onclick="navigateTo('profile')">
+                <span class="icon">👤</span>
+                <span>Профіль</span>
+            </button>
+            <button class="nav-item" data-nav="favorites" onclick="navigateTo('favorites')">
+                <span class="icon">❤️</span>
+                <span>Улюбл.</span>
+            </button>
+            <button class="nav-item" data-nav="cart" onclick="navigateTo('cart')">
+                <span class="icon">🛒</span>
+                <span id="cart-count" class="badge">0</span>
+            </button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- SHOP VIEW -->
+            <section id="shop-view" class="view active">
+                <div class="search-header">
+                    <input type="text" id="search-input" placeholder="🔍 Пошук..." class="search-input">
+                    <select id="sort-select" class="filter-select">
+                        <option value="new">Нові</option>
+                        <option value="price-asc">Ціна ↑</option>
+                        <option value="price-desc">Ціна ↓</option>
+                        <option value="popular">Популярні</option>
+                    </select>
+                </div>
+
+                <!-- Gamification Widget -->
+                <div class="gamification-widget">
+                    <div class="level-card">
+                        <div id="level-display" class="level-badge">⭐ Рівень 1</div>
+                        <div class="points-bar">
+                            <div id="points-bar" class="points-fill"></div>
+                        </div>
+                        <div id="points-text" class="points-text">0 / 100 очок</div>
+                    </div>
+                    <div class="tier-card">
+                        <span id="tier-badge" class="tier-name">🥉 Bronze</span>
+                        <span id="tier-discount" class="tier-discount">-0% на товари</span>
+                    </div>
+                </div>
+
+                <!-- Daily Tasks -->
+                <details class="daily-tasks-section">
+                    <summary>📋 Щоденні завдання</summary>
+                    <div id="daily-tasks" class="tasks-grid"></div>
+                </details>
+
+                <!-- Products Grid -->
+                <div id="products-container" class="products-grid">
+                    <div class="loading">Завантаження товарів...</div>
+                </div>
+            </section>
+
+            <!-- PROFILE VIEW -->
+            <section id="profile-view" class="view">
+                <div class="profile-header">
+                    <div class="user-avatar" id="user-avatar">👤</div>
+                    <div class="user-info">
+                        <h2 id="user-name">Гість</h2>
+                        <p id="user-balance">💰 0₴</p>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <span class="label">Рівень</span>
+                        <span class="value" id="profile-level">1</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Очок</span>
+                        <span class="value" id="profile-points">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Звань</span>
+                        <span class="value" id="profile-achievements">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="label">Рейтинг</span>
+                        <span class="value" id="profile-rank">#-</span>
+                    </div>
+                </div>
+
+                <!-- Achievements -->
+                <div class="section">
+                    <h3>🏆 Досягнення</h3>
+                    <div id="achievements-grid" class="achievements-grid"></div>
+                </div>
+
+                <!-- Referral Program -->
+                <div class="section">
+                    <h3>👥 Реферал</h3>
+                    <div class="referral-code">
+                        <input type="text" id="referral-code" readonly>
+                        <button onclick="copyReferralCode()" class="btn-small">Копіювати</button>
+                        <button onclick="shareReferralCode()" class="btn-small">Поділитись</button>
+                    </div>
+                    <div class="referral-stats">
+                        <div>Запрошено: <span id="referral-count">0</span></div>
+                        <div>Заробленно: <span id="referral-earnings">0₴</span></div>
+                    </div>
+                </div>
+
+                <!-- Leaderboard -->
+                <div class="section">
+                    <h3>📊 Топ-10</h3>
+                    <div id="leaderboard" class="leaderboard"></div>
+                </div>
+
+                <!-- Orders -->
+                <div class="section">
+                    <h3>📦 Замовлення</h3>
+                    <div id="orders-list" class="orders-list"></div>
+                </div>
+            </section>
+
+            <!-- FAVORITES VIEW -->
+            <section id="favorites-view" class="view">
+                <div class="wishlist-settings">
+                    <label><input type="checkbox" id="alert-price" checked> По знижках</label>
+                    <label><input type="checkbox" id="alert-stock" checked> Повернув. в запас</label>
+                </div>
+                <div id="favorites-grid" class="products-grid"></div>
+            </section>
+
+            <!-- CART VIEW -->
+            <section id="cart-view" class="view">
+                <div id="cart-items" class="cart-items"></div>
+                <div id="cart-summary" class="cart-summary">
+                    <div class="summary-row">
+                        <span>Сума:</span>
+                        <span id="subtotal">0₴</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Доставка:</span>
+                        <span id="shipping">0₴</span>
+                    </div>
+                    <div id="discount-row" class="summary-row discount" style="display:none;">
+                        <span>Знижка:</span>
+                        <span id="discount-amount">-0₴</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Разом:</span>
+                        <span id="total">0₴</span>
+                    </div>
+
+                    <div class="promo-section">
+                        <input type="text" id="promo-code" placeholder="Промокод..." class="promo-input">
+                        <button onclick="applyPromoCode()" class="btn-secondary">OK</button>
+                    </div>
+
+                    <div id="checkout-form" style="display:none;">
+                        <input type="text" id="order-name" placeholder="Ваше ім'я" class="form-input">
+                        <input type="tel" id="order-phone" placeholder="+380..." class="form-input">
+                        
+                        <input type="text" id="city-search" placeholder="Місто..." class="form-input" autocomplete="off">
+                        <div id="city-suggestions" class="suggestions"></div>
+
+                        <select id="warehouse-select" class="form-input" style="display:none;">
+                            <option>Оберіть відділення</option>
+                        </select>
+
+                        <button onclick="submitOrder()" class="btn-primary" style="width: 100%;">
+                            Оформити
+                        </button>
+                    </div>
+
+                    <button id="checkout-btn" onclick="showCheckout()" class="btn-primary" style="width: 100%;">
+                        Оформити замовлення
+                    </button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Product Modal -->
+    <div id="product-modal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+            <div class="modal-body">
+                <img id="modal-image" src="" alt="" class="modal-image">
+                <h2 id="modal-title"></h2>
+                <div id="modal-price" class="modal-price"></div>
+                <p id="modal-desc"></p>
+                <div id="modal-variants" class="variants"></div>
+                <div class="qty-selector">
+                    <button onclick="decrementQty()">−</button>
+                    <input type="number" id="qty-input" value="1" min="1">
+                    <button onclick="incrementQty()">+</button>
+                </div>
+                <button onclick="addToCart()" class="btn-primary" style="width:100%;">Додати</button>
+                <button onclick="toggleFavorite()" class="btn-secondary" style="width:100%;">❤️ Улюблене</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Overlay -->
+    <div id="overlay" class="overlay" onclick="closeModal()"></div>
+    

@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔐 Admin Panel - MiniShop</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <link rel="stylesheet" href="/static/admin-style.css">
+</head>
+<body>
+    <div class="admin-container">
+        <nav class="admin-sidebar">
+            <h1>MiniShop 🛍️</h1>
+            <ul>
+                <li><a href="#" onclick="showView('dashboard')">📊 Dashboard</a></li>
+                <li><a href="#" onclick="showView('products')">📦 Товари</a></li>
+                <li><a href="#" onclick="showView('orders')">📋 Замовлення</a></li>
+                <li><a href="#" onclick="showView('users')">👥 Користувачі</a></li>
+                <li><a href="#" onclick="showView('gamification')">🎮 Геймфікація</a></li>
+                <li><a href="#" onclick="showView('promocodes')">🎟️ Промокоди</a></li>
+                <li><a href="#" onclick="showView('settings')">⚙️ Налаштування</a></li>
+            </ul>
+        </nav>
+
+        <main class="admin-main">
+            <!-- DASHBOARD -->
+            <section id="dashboard" class="view active">
+                <h2>📊 Dashboard</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="label">Замовлень</div>
+                        <div class="value" id="stat-orders">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Користувачів</div>
+                        <div class="value" id="stat-users">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Виручка</div>
+                        <div class="value" id="stat-revenue">0₴</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">Товарів</div>
+                        <div class="value" id="stat-products">0</div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </section>
+
+            <!-- PRODUCTS -->
+            <section id="products" class="view">
+                <h2>📦 Товари</h2>
+                <button class="btn-primary" onclick="showCreateProduct()">+ Додати товар</button>
+                
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Назва</th>
+                            <th>Ціна</th>
+                            <th>Кількість</th>
+                            <th>Дії</th>
+                        </tr>
+                    </thead>
+                    <tbody id="products-table"></tbody>
+                </table>
+            </section>
+
+            <!-- ORDERS -->
+            <section id="orders" class="view">
+                <h2>📋 Замовлення</h2>
+                <div id="orders-container" class="orders-list"></div>
+            </section>
+
+            <!-- USERS -->
+            <section id="users" class="view">
+                <h2>👥 Користувачі</h2>
+                <div id="users-container"></div>
+            </section>
+
+            <!-- GAMIFICATION -->
+            <section id="gamification" class="view">
+                <h2>🎮 Геймфікація</h2>
+                
+                <div class="section">
+                    <h3>🏆 Рівні та Звання</h3>
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Назва</th>
+                                <th>Мін. очок</th>
+                                <th>Бонус</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tiers-table"></tbody>
+                    </table>
+                </div>
+
+                <div class="section">
+                    <h3>🏅 Досягнення</h3>
+                    <button class="btn-primary" onclick="showCreateAchievement()">+ Додати</button>
+                    <div id="achievements-container"></div>
+                </div>
+
+                <div class="section">
+                    <h3>👥 Рефералісти</h3>
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Користувач</th>
+                                <th>Кількість запрошених</th>
+                                <th>Заробленно</th>
+                            </tr>
+                        </thead>
+                        <tbody id="referrals-table"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- PROMOCODES -->
+            <section id="promocodes" class="view">
+                <h2>🎟️ Промокоди</h2>
+                <button class="btn-primary" onclick="showCreatePromo()">+ Новий промокод</button>
+                
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Код</th>
+                            <th>Знижка</th>
+                            <th>Використано</th>
+                            <th>Дійсний до</th>
+                            <th>Дії</th>
+                        </tr>
+                    </thead>
+                    <tbody id="promos-table"></tbody>
+                </table>
+            </section>
+
+            <!-- SETTINGS -->
+            <section id="settings" class="view">
+                <h2>⚙️ Налаштування</h2>
+                <form id="settings-form" onsubmit="saveSettings(event)">
+                    <div class="form-group">
+                        <label>Назва магазину</label>
+                        <input type="text" id="setting-shop-name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Валюта</label>
+                        <input type="text" id="setting-currency" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Мін. сума замовлення</label>
+                        <input type="number" id="setting-min-order" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Безкоштовна доставка від</label>
+                        <input type="number" id="setting-free-shipping" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Контактний телефон</label>
+                        <input type="tel" id="setting-phone" required>
+                    </div>
+
+                    <button type="submit" class="btn-primary">Зберегти</button>
+                </form>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeModal()">&times;</span>
+            <div id="modal-body"></div>
+        </div>
+    </div>
+
+    <script>
+        const API = '/api';
+        
+        function showView(id) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            
+            if (id === 'dashboard') loadDashboard();
+            if (id === 'products') loadProducts();
+            if (id === 'orders') loadOrders();
+            if (id === 'users') loadUsers();
+            if (id === 'gamification') loadGamification();
+            if (id === 'promocodes') loadPromos();
+        }
+
+        async function loadDashboard() {
+            try {
+                const res = await fetch(`${API}/admin/dashboard`);
+                const data = await res.json();
+                
+                document.getElementById('stat-orders').textContent = data.total_orders;
+                document.getElementById('stat-users').textContent = data.total_users;
+                document.getElementById('stat-revenue').textContent = `${data.total_revenue}₴`;
+                document.getElementById('stat-products').textContent = data.total_products;
+                
+                // Chart
+                const ctx = document.getElementById('revenueChart')?.getContext('2d');
+                if (ctx) {
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: {
+                            labels: data.revenue_chart?.labels || [],
+                            datasets: [{
+                                label: 'Виручка',
+                                data: data.revenue_chart?.data || [],
+                                borderColor: '#FF6B6B',
+                                backgroundColor: 'rgba(255,107,107,0.1)'
+                            }]
+                        },
+                        options: {responsive: true}
+                    });
+                }
+            } catch (e) {
+                console.error('Dashboard error:', e);
+            }
+        }
+
+        async function loadProducts() {
+            try {
+                const res = await fetch(`${API}/products`);
+                const data = await res.json();
+                
+                const table = document.getElementById('products-table');
+                table.innerHTML = (data.products || []).map(p => `
+                    <tr>
+                        <td>${p.id}</td>
+                        <td>${p.name}</td>
+                        <td>${p.base_price}₴</td>
+                        <td>${p.total_quantity}</td>
+                        <td>
+                            <button class="btn-small" onclick="editProduct(${p.id})">✏️</button>
+                            <button class="btn-small" onclick="deleteProduct(${p.id})">🗑️</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                console.error('Products error:', e);
+            }
+        }
+
+        async function loadOrders() {
+            try {
+                const res = await fetch(`${API}/admin/orders`);
+                const data = await res.json();
+                
+                const container = document.getElementById('orders-container');
+                container.innerHTML = (data.orders || []).map(o => `
+                    <div class="order-card">
+                        <div class="order-header">
+                            <strong>Замовлення #${o.order_number}</strong>
+                            <span class="badge-${o.status}">${o.status}</span>
+                        </div>
+                        <div>Клієнт: ${o.customer_name} | ${o.customer_phone}</div>
+                        <div>Сума: ${o.total_price}₴</div>
+                        ${o.ttn ? `<div>ТТН: ${o.ttn}</div>` : ''}
+                        <button class="btn-small" onclick="updateOrderStatus('${o.id}')">Оновити статус</button>
+                    </div>
+                `).join('');
+            } catch (e) {
+                console.error('Orders error:', e);
+            }
+        }
+
+        async function loadUsers() {
+            try {
+                const res = await fetch(`${API}/admin/users`);
+                const data = await res.json();
+                
+                const container = document.getElementById('users-container');
+                container.innerHTML = (data.users || []).map(u => `
+                    <div class="user-card">
+                        <strong>${u.first_name}</strong><br>
+                        ID: ${u.telegram_id}<br>
+                        Роль: ${u.role}<br>
+                        Баланс: ${u.balance}₴
+                    </div>
+                `).join('');
+            } catch (e) {
+                console.error('Users error:', e);
+            }
+        }
+
+        async function loadGamification() {
+            try {
+                const res = await fetch(`${API}/admin/gamification`);
+                const data = await res.json();
+                
+                // Tiers
+                document.getElementById('tiers-table').innerHTML = (data.tiers || []).map(t => `
+                    <tr>
+                        <td>${t.name}</td>
+                        <td>${t.min_points}</td>
+                        <td>${t.discount_multiplier}x</td>
+                    </tr>
+                `).join('');
+                
+                // Referrals
+                document.getElementById('referrals-table').innerHTML = (data.top_referrers || []).map(r => `
+                    <tr>
+                        <td>${r.first_name}</td>
+                        <td>${r.referred_count}</td>
+                        <td>${r.referral_earnings}₴</td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                console.error('Gamification error:', e);
+            }
+        }
+
+        async function loadPromos() {
+            try {
+                const res = await fetch(`${API}/promocodes`);
+                const data = await res.json();
+                
+                document.getElementById('promos-table').innerHTML = (data.promocodes || []).map(p => `
+                    <tr>
+                        <td><code>${p.code}</code></td>
+                        <td>${p.discount_value}${p.discount_type === 'percent' ? '%' : '₴'}</td>
+                        <td>${p.current_uses} / ${p.max_uses}</td>
+                        <td>${p.valid_until}</td>
+                        <td>
+                            <button class="btn-small" onclick="deletePromo('${p.code}')">🗑️</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                console.error('Promos error:', e);
+            }
+        }
+
+        function showCreateProduct() {
+            showModal(`
+                <h3>Додати товар</h3>
+                <form onsubmit="createProduct(event)">
+                    <input type="text" placeholder="Назва" id="prod-name" required>
+                    <input type="number" placeholder="Ціна" id="prod-price" required>
+                    <input type="number" placeholder="Кількість" id="prod-qty" required>
+                    <textarea placeholder="Опис" id="prod-desc"></textarea>
+                    <button type="submit" class="btn-primary">Додати</button>
+                </form>
+            `);
+        }
+
+        function showModal(content) {
+            document.getElementById('modal-body').innerHTML = content;
+            document.getElementById('modal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        // Initialize
+        loadDashboard();
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f5f5f5;
+        }
+
+        .admin-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .admin-sidebar {
+            width: 240px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .admin-sidebar h1 {
+            margin-bottom: 30px;
+            font-size: 20px;
+        }
+
+        .admin-sidebar ul {
+            list-style: none;
+        }
+
+        .admin-sidebar li {
+            margin-bottom: 10px;
+        }
+
+        .admin-sidebar a {
+            color: white;
+            text-decoration: none;
+            display: block;
+            padding: 10px;
+            border-radius: 6px;
+            opacity: 0.8;
+            transition: all 0.2s;
+        }
+
+        .admin-sidebar a:hover {
+            background: rgba(255,255,255,0.2);
+            opacity: 1;
+        }
+
+        .admin-main {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .stat-card .label {
+            color: #999;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #FF6B6B;
+        }
+
+        .btn-primary {
+            background: #FF6B6B;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin: 10px 0;
+        }
+
+        .btn-small {
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .admin-table {
+            width: 100%;
+            background: white;
+            border-collapse: collapse;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 20px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .admin-table th {
+            background: #f5f5f5;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .admin-table td {
+            padding: 12px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .order-card {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .badge-pending {
+            background: #FFA500;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .badge-completed {
+            background: var(--success, green);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-family: inherit;
+        }
+
+        .section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .section h3 {
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+    </style>
+</body>
+</html>

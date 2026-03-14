@@ -1,0 +1,142 @@
+# ═══════════════════════════════════════════════════════════════════
+# 🐳 DOCKER COMPOSE - COMPLETE STACK
+# ═══════════════════════════════════════════════════════════════════
+# Run with: docker-compose up -d
+# Stop with: docker-compose down
+
+version: '3.9'
+
+services:
+  # ┌─────────────────────────────────────────────────────────────┐
+  # │ FASTAPI APPLICATION SERVER                                  │
+  # └─────────────────────────────────────────────────────────────┘
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: telegram-shop-api
+    
+    ports:
+      - "8000:8000"
+    
+    environment:
+      - DATABASE_URL=sqlite:///shop.db
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - FASTAPI_ENV=production
+      - DEBUG=false
+    
+    volumes:
+      - ./shop.db:/app/shop.db
+      - ./static:/app/static
+      - ./logs:/app/logs
+    
+    depends_on:
+      - redis
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/docs"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+  
+  # ┌─────────────────────────────────────────────────────────────┐
+  # │ TELEGRAM BOT (AIOGRAM 3.x)                                  │
+  # └─────────────────────────────────────────────────────────────┘
+  bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: telegram-shop-bot
+    
+    command: python bot_v3.py
+    
+    environment:
+      - TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+      - DATABASE_URL=sqlite:///shop.db
+      - DEBUG=false
+    
+    volumes:
+      - ./shop.db:/app/shop.db
+      - ./logs:/app/logs
+    
+    depends_on:
+      - api
+    
+    restart: unless-stopped
+  
+  # ┌─────────────────────────────────────────────────────────────┐
+  # │ REDIS CACHE & SESSION STORE                                 │
+  # └─────────────────────────────────────────────────────────────┘
+  redis:
+    image: redis:7.2-alpine
+    container_name: telegram-shop-redis
+    
+    ports:
+      - "6379:6379"
+    
+    volumes:
+      - redis_data:/data
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+  
+  # ┌─────────────────────────────────────────────────────────────┐
+  # │ NGINX REVERSE PROXY                                         │
+  # └─────────────────────────────────────────────────────────────┘
+  nginx:
+    image: nginx:latest
+    container_name: telegram-shop-nginx
+    
+    ports:
+      - "80:80"
+      - "443:443"
+    
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./static:/usr/share/nginx/html/static:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    
+    depends_on:
+      - api
+    
+    restart: unless-stopped
+  
+  # ┌─────────────────────────────────────────────────────────────┐
+  # │ POSTGRESQL DATABASE (optional, for production)              │
+  # └─────────────────────────────────────────────────────────────┘
+  # postgres:
+  #   image: postgres:15-alpine
+  #   container_name: telegram-shop-postgres
+  #   
+  #   environment:
+  #     POSTGRES_USER: ${PG_USER:-postgres}
+  #     POSTGRES_PASSWORD: ${PG_PASSWORD:-postgres}
+  #     POSTGRES_DB: ${PG_DATABASE:-shop_db}
+  #   
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   
+  #   ports:
+  #     - "5432:5432"
+  #   
+  #   restart: unless-stopped
+
+# ═══════════════════════════════════════════════════════════════════
+# 📦 VOLUMES & NETWORKS
+# ═══════════════════════════════════════════════════════════════════
+
+volumes:
+  redis_data:
+  # postgres_data:
+
+networks:
+  default:
+    name: telegram-shop-network

@@ -1,0 +1,104 @@
+# ═══════════════════════════════════════════════════════════════════
+# TELEGRAM MINI APP E-COMMERCE - REQUIREMENTS.TXT
+# ═══════════════════════════════════════════════════════════════════
+
+# ─────────────────────────────────────────────────────────────────
+# TELEGRAM BOT & FRAMEWORK
+# ─────────────────────────────────────────────────────────────────
+aiogram==3.3.0  # Telegram Bot API wrapper (NEW VERSION)
+python-telegram-bot==20.7  # Alternative, optional
+
+# ─────────────────────────────────────────────────────────────────
+# WEB FRAMEWORK
+# ─────────────────────────────────────────────────────────────────
+fastapi==0.109.0  # Web framework
+uvicorn==0.27.0  # ASGI server for FastAPI
+starlette==0.35.0  # Async web framework
+pydantic==2.5.3  # Data validation with type hints
+pydantic-settings==2.1.0  # Settings management
+
+# ─────────────────────────────────────────────────────────────────
+# DATABASE & ORM
+# ─────────────────────────────────────────────────────────────────
+sqlalchemy==2.0.23  # SQL toolkit and ORM (optional, uses raw SQL by default)
+aiosqlite==0.19.0  # Async SQLite driver
+alembic==1.13.0  # Database migrations
+
+# ─────────────────────────────────────────────────────────────────
+# ASYNC & CONCURRENCY
+# ─────────────────────────────────────────────────────────────────
+aiohttp==3.9.2  # HTTP client for async requests
+
+# ─────────────────────────────────────────────────────────────────
+# API & HTTP
+# ─────────────────────────────────────────────────────────────────
+requests==2.31.0  # HTTP library (for sync requests)
+httpx==0.25.2  # Async HTTP client
+curl-cffi==0.6.1  # cURL wrapper for bypassing rate limits
+
+# ─────────────────────────────────────────────────────────────────
+# DATA PROCESSING & VALIDATION
+# ─────────────────────────────────────────────────────────────────
+python-multipart==0.0.6  # For file uploads in FastAPI
+python-dotenv==1.0.0  # Environment variables from .env
+PyYAML==6.0.1  # YAML parsing
+
+# ─────────────────────────────────────────────────────────────────
+# CACHING & SESSIONS
+# ─────────────────────────────────────────────────────────────────
+redis==5.0.1  # Redis client (optional for caching)
+cachetools==5.3.2  # Caching utilities
+
+# ─────────────────────────────────────────────────────────────────
+# LOGGING & MONITORING
+# ─────────────────────────────────────────────────────────────────
+loguru==0.7.2  # Better logging
+
+# ─────────────────────────────────────────────────────────────────
+# FILE & IMAGE PROCESSING
+# ─────────────────────────────────────────────────────────────────
+Pillow==10.1.0  # Image processing
+python-magic==0.4.27  # File type detection
+
+# ─────────────────────────────────────────────────────────────────
+# DATA SERIALIZATION
+# ─────────────────────────────────────────────────────────────────
+ujson==5.9.0  # Fast JSON encoding/decoding
+msgpack==1.0.7  # Binary serialization
+
+# ─────────────────────────────────────────────────────────────────
+# SECURITY & CRYPTO
+# ─────────────────────────────────────────────────────────────────
+cryptography==41.0.7  # Cryptography library
+passlib==1.7.4  # Password hashing
+python-jose==3.3.0  # JWT tokens
+
+# ─────────────────────────────────────────────────────────────────
+# UTILITIES
+# ─────────────────────────────────────────────────────────────────
+python-dateutil==2.8.2  # Date utilities
+pytz==2024.1  # Timezone support
+humanize==4.9.0  # Human-readable strings
+validators==0.23.0  # Data validators
+phonenumbers==8.13.0  # Phone number parsing
+
+# ─────────────────────────────────────────────────────────────────
+# DEVELOPMENT & TESTING
+# ─────────────────────────────────────────────────────────────────
+pytest==7.4.3  # Testing framework
+pytest-asyncio==0.23.2  # Pytest async support
+pytest-cov==4.1.0  # Test coverage
+black==23.12.1  # Code formatter
+flake8==6.1.0  # Code linter
+mypy==1.8.0  # Static type checker
+isort==5.13.2  # Import sorting
+
+# ─────────────────────────────────────────────────────────────────
+# OPTIONAL: HEAVY FEATURES (uncomment if needed)
+# ─────────────────────────────────────────────────────────────────
+# celery==5.3.6  # Task queue for background jobs
+# flower==2.0.1  # Celery monitoring
+# rabbitmq-server  # Message broker (install via system package manager)
+# pandas==2.1.4  # Data analysis for analytics
+# numpy==1.26.3  # Numerical computing
+# plotly==5.18.0  # Interactive dashboards
